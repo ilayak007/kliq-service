@@ -40,7 +40,7 @@ kliq-service/
 Method	Endpoint	          Description
 GET	    /campaigns	        Get all campaigns
 GET	    /campaigns/:id	    Get campaign by ID (includes creators)
-POST	  /campaigns	        Create a new campaign
+POST	 /campaigns	        Create a new campaign
 PUT	    /campaigns/:id	    Update a campaign
 DELETE	/campaigns/:id	    Delete a campaign
 
@@ -49,7 +49,7 @@ Method	Endpoint	          Description
 GET	    /creators	          Get all creators
 GET	    /creators/:id	      Get creator by ID
 GET	    /creators/top	      Get top 3 creators (not linked to a campaign)
-POST	  /creators	          Create a new creator
+POST	/creators	          Create a new creator
 PUT	    /creators/:id	      Update a creator
 DELETE	/creators/:id	      Delete a creator
 
