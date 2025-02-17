@@ -9,7 +9,6 @@ const getAllCampaigns = async (req, res) => {
 
     const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
 
-    // Format response to include image URLs
     const formattedCampaigns = campaigns.map(campaign => ({
       ...campaign,
       imageUrl: campaign.imageKey ? `${s3BaseUrl}${campaign.imageKey}` : null,
