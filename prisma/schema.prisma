@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Campaign {
+  id               String   @id @default(uuid())
+  name             String
+  description      String
+  budget          Int
+  launchDate      DateTime
+  assignedBy      String
+  assignedChannels String[]
+  imageKey        String?
+  assignedImageKey String?
+  invitedCreators InvitedCreator[]
+}
+
+model Creator {
+  id         String   @id @default(uuid())
+  name       String
+  city       String
+  country    String
+  followers  Int
+  platforms  String[]
+  imageKey   String?   // Stores S3 image reference
+  invitedCampaigns InvitedCreator[]
+}
+
+model InvitedCreator {
+  id         String   @id @default(uuid())
+  campaignId String
+  creatorId  String
+
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creator    Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, creatorId]) // Ensures a creator is invited only once per campaign
+}

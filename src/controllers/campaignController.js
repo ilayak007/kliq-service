@@ -1,0 +1,115 @@
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
+const getAllCampaigns = async (req, res) => {
+  try {
+    const campaigns = await prisma.campaign.findMany({
+      include: { invitedCreators: { include: { creator: true } } },
+    });
+
+    const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
+
+    // Format response to include image URLs
+    const formattedCampaigns = campaigns.map(campaign => ({
+      ...campaign,
+      imageUrl: campaign.imageKey ? `${s3BaseUrl}${campaign.imageKey}` : null,
+      assignedImageUrl: campaign.assignedImageKey
+        ? `${s3BaseUrl}${campaign.assignedImageKey}`
+        : null,
+      invitedCreators: campaign.invitedCreators.map(invited => ({
+        ...invited,
+        creator: {
+          ...invited.creator,
+          imageUrl: invited.creator.imageKey
+            ? `${s3BaseUrl}${invited.creator.imageKey}`
+            : null,
+        },
+      })),
+    }));
+
+    res.json(formattedCampaigns);
+  } catch (error) {
+    console.error("Error fetching campaigns:", error);
+    res.status(500).json({ error: "Error fetching campaigns" });
+  }
+};
+
+
+const getCampaignById = async (req, res) => {
+  try {
+    const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
+
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: req.params.id },
+      include: { invitedCreators: { include: { creator: true } } },
+    });
+
+    if (!campaign) {
+      return res.status(404).json({ error: "Campaign not found" });
+    }
+
+    console.log("Campaign Data:", campaign);
+    console.log("Campaign imageKey:", campaign.imageKey);
+
+    // Ensure campaign.imageKey is properly formatted
+    const formattedCampaign = {
+      ...campaign,
+      imageUrl: campaign.imageKey ? `${s3BaseUrl}${campaign.imageKey}` : null,
+      assignedImageUrl: campaign.assignedImageKey
+        ? `${s3BaseUrl}${campaign.assignedImageKey}`
+        : null,
+      invitedCreators: campaign.invitedCreators.map((invited) => ({
+        ...invited,
+        creator: {
+          ...invited.creator,
+          imageUrl: invited.creator.imageKey
+            ? `${s3BaseUrl}${invited.creator.imageKey}`
+            : null,
+        },
+      })),
+    };
+
+    console.log("Formatted Campaign Data:", formattedCampaign);
+
+    res.json(formattedCampaign);
+  } catch (error) {
+    console.error("Error fetching campaign:", error);
+    res.status(500).json({ error: "Error fetching campaign" });
+  }
+};
+
+
+const createCampaign = async (req, res) => {
+  try {
+    const { name, description, budget, launchDate, assignedBy, assignedChannels, imageKey, assignedImageKey } = req.body;
+    const campaign = await prisma.campaign.create({
+      data: { name, description, budget, launchDate: new Date(launchDate), assignedBy, assignedChannels, imageKey, assignedImageKey},
+    });
+    res.json(campaign);
+  } catch (error) {
+    res.status(500).json({ error: "Error creating campaign" });
+  }
+};
+
+const updateCampaign = async (req, res) => {
+  try {
+    const updatedCampaign = await prisma.campaign.update({
+      where: { id: req.params.id },
+      data: req.body,
+    });
+    res.json(updatedCampaign);
+  } catch (error) {
+    res.status(500).json({ error: "Error updating campaign" });
+  }
+};
+
+const deleteCampaign = async (req, res) => {
+  try {
+    await prisma.campaign.delete({ where: { id: req.params.id } });
+    res.json({ message: "Campaign deleted" });
+  } catch (error) {
+    res.status(500).json({ error: "Error deleting campaign" });
+  }
+};
+
+module.exports = { getAllCampaigns, getCampaignById, createCampaign, updateCampaign, deleteCampaign };
