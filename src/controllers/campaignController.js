@@ -1,3 +1,4 @@
+const { formatFollowers } = require('../utils/format');
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -19,6 +20,7 @@ const getAllCampaigns = async (req, res) => {
         ...invited,
         creator: {
           ...invited.creator,
+          followers: formatFollowers(invited.creator.followers),
           imageUrl: invited.creator.imageKey
             ? `${s3BaseUrl}${invited.creator.imageKey}`
             : null,
@@ -61,6 +63,7 @@ const getCampaignById = async (req, res) => {
         ...invited,
         creator: {
           ...invited.creator,
+          followers: formatFollowers(invited.creator.followers),
           imageUrl: invited.creator.imageKey
             ? `${s3BaseUrl}${invited.creator.imageKey}`
             : null,
