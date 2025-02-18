@@ -20,8 +20,8 @@ const getAllCampaigns = async (req, res) => {
         campaignCreatedDate: campaign.campaignCreatedDate 
         ? format(new Date(campaign.campaignCreatedDate), "MMMM d, yyyy") 
         : null,
-        isActive: campaign.campaignCreatedDate
-        ? new Date(campaign.campaignCreatedDate) <= new Date() // Compare dates
+        isActive: campaign.launchDate
+        ? new Date(campaign.launchDate) <= new Date() // Compare dates
         : false,     
       invitedCreators: campaign.invitedCreators.map(invited => ({
         ...invited,
@@ -72,8 +72,8 @@ const getCampaignById = async (req, res) => {
       launchDate: campaign.launchDate 
       ? format(new Date(campaign.launchDate), "MMMM d, yyyy") 
       : null,
-      isActive: campaign.campaignCreatedDate
-        ? new Date(campaign.campaignCreatedDate) <= new Date() // Compare dates
+      isActive: campaign.launchDate
+        ? new Date(campaign.launchDate) <= new Date() // Compare dates
         : false,  
       invitedCreators: campaign.invitedCreators.map((invited) => ({
         ...invited,
