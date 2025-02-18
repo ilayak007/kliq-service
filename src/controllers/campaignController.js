@@ -69,7 +69,7 @@ const getCampaignById = async (req, res) => {
       campaignCreatedDate: campaign.campaignCreatedDate 
       ? format(new Date(campaign.campaignCreatedDate), "MMMM d, yyyy") 
       : null,
-      camplaunchDateaignL: campaign.launchDate 
+      launchDate: campaign.launchDate 
       ? format(new Date(campaign.launchDate), "MMMM d, yyyy") 
       : null,
       isActive: campaign.campaignCreatedDate
