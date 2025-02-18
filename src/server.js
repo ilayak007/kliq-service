@@ -16,7 +16,7 @@ app.get("/", (req, res) => res.send("Kliq Service is running!"));
 // Use routes
 app.use("/campaigns", campaignRoutes);
 app.use("/creators", creatorRoutes);
-app.use("/creators", invitedCreatorRoutes);
+app.use("/invited-creators", invitedCreatorRoutes);
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

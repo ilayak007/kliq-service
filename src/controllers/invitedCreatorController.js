@@ -14,11 +14,20 @@ const inviteCreatorToCampaign = async (req, res) => {
 const removeCreatorFromCampaign = async (req, res) => {
   try {
     const { campaignId, creatorId } = req.body;
-    await prisma.invitedCreator.deleteMany({ where: { campaignId, creatorId } });
-    res.json({ message: "Creator removed from campaign" });
+
+    const deletedRecords = await prisma.invitedCreator.deleteMany({
+      where: { campaignId, creatorId },
+    });
+
+    if (deletedRecords.count === 0) {
+      return res.status(404).json({ error: "No matching record found" });
+    }
+
+    res.status(200).json({ message: "Creator removed from campaign" });
   } catch (error) {
     res.status(500).json({ error: "Error removing creator from campaign" });
   }
 };
+
 
 module.exports = { inviteCreatorToCampaign, removeCreatorFromCampaign };
