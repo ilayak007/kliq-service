@@ -17,6 +17,7 @@ model Campaign {
   assignedChannels String[]
   imageKey        String?
   assignedImageKey String?
+  campaignCreatedDate DateTime @default(now())
   invitedCreators InvitedCreator[]
 }
 

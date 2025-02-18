@@ -1,6 +1,7 @@
 const { formatFollowers } = require('../utils/format');
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { format } = require("date-fns");
 
 const getAllCampaigns = async (req, res) => {
   try {
@@ -16,6 +17,12 @@ const getAllCampaigns = async (req, res) => {
       assignedImageUrl: campaign.assignedImageKey
         ? `${s3BaseUrl}${campaign.assignedImageKey}`
         : null,
+        campaignCreatedDate: campaign.campaignCreatedDate 
+        ? format(new Date(campaign.campaignCreatedDate), "MMMM d, yyyy") 
+        : null,
+        isActive: campaign.campaignCreatedDate
+        ? new Date(campaign.campaignCreatedDate) <= new Date() // Compare dates
+        : false,     
       invitedCreators: campaign.invitedCreators.map(invited => ({
         ...invited,
         creator: {
@@ -59,6 +66,12 @@ const getCampaignById = async (req, res) => {
       assignedImageUrl: campaign.assignedImageKey
         ? `${s3BaseUrl}${campaign.assignedImageKey}`
         : null,
+      campaignCreatedDate: campaign.campaignCreatedDate 
+      ? format(new Date(campaign.campaignCreatedDate), "MMMM d, yyyy") 
+      : null,
+      isActive: campaign.campaignCreatedDate
+        ? new Date(campaign.campaignCreatedDate) <= new Date() // Compare dates
+        : false,  
       invitedCreators: campaign.invitedCreators.map((invited) => ({
         ...invited,
         creator: {

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Campaign" ADD COLUMN     "campaignCreatedDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
