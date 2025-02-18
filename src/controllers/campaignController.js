@@ -86,7 +86,7 @@ const getCampaignById = async (req, res) => {
 
     console.log("Formatted Campaign Data:", formattedCampaign);
 
-    res.json(formattedCampaign);
+    res.json({ campaign: formattedCampaign });
   } catch (error) {
     console.error("Error fetching campaign:", error);
     res.status(500).json({ error: "Error fetching campaign" });
