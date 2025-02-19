@@ -41,7 +41,7 @@ const getTopCreators = async (req, res) => {
       orderBy: {
         followers: 'desc', // Sort by followers (assuming more followers = top creator)
       },
-      take: 3, // Limit to top 3
+      take: 4, // Limit to top 3
     });
 
     const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
