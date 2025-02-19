@@ -7,6 +7,7 @@ const getAllCampaigns = async (req, res) => {
   try {
     const campaigns = await prisma.campaign.findMany({
       include: { invitedCreators: { include: { creator: true } } },
+      orderBy: { id: 'asc' },
     });
 
     const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
