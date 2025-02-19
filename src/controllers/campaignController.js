@@ -17,6 +17,9 @@ const getAllCampaigns = async (req, res) => {
       assignedImageUrl: campaign.assignedImageKey
         ? `${s3BaseUrl}${campaign.assignedImageKey}`
         : null,
+        launchDate: campaign.launchDate 
+        ? format(new Date(campaign.launchDate), "MMMM d, yyyy") 
+        : null,
         campaignCreatedDate: campaign.campaignCreatedDate 
         ? format(new Date(campaign.campaignCreatedDate), "MMMM d, yyyy") 
         : null,
