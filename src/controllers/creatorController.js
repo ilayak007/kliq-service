@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const { formatFollowers } = require('../utils/format');
 const prisma = new PrismaClient();
 
 const getAllCreators = async (req, res) => {
@@ -47,6 +48,7 @@ const getTopCreators = async (req, res) => {
     const formattedCreators = topCreators.map(creator => ({
       ...creator,
       imageUrl: creator.imageKey ? `${s3BaseUrl}${creator.imageKey}` : null,
+      followers: formatFollowers(creator.followers),
     }));
 
     res.json(formattedCreators);
