@@ -2,6 +2,7 @@ const { formatFollowers } = require('../utils/format');
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { format } = require("date-fns");
+const { v4: uuidv4 } = require('uuid');
 
 const getAllCampaigns = async (req, res) => {
   try {
@@ -103,12 +104,14 @@ const getCampaignById = async (req, res) => {
 
 const createCampaign = async (req, res) => {
   try {
+    const customId = `z${uuidv4()}`;
     const { name, description, budget, launchDate, assignedBy, assignedChannels, imageKey, assignedImageKey } = req.body;
     const campaign = await prisma.campaign.create({
-      data: { name, description, budget, launchDate: new Date(launchDate), assignedBy, assignedChannels, imageKey, assignedImageKey},
+      data: { id: customId, name, description, budget, launchDate: new Date(launchDate), assignedBy, assignedChannels, imageKey, assignedImageKey},
     });
     res.json(campaign);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Error creating campaign" });
   }
 };
