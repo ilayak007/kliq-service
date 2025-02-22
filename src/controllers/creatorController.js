@@ -1,14 +1,12 @@
-const { PrismaClient } = require("@prisma/client");
+const { prisma } = require("../prismaClient");
 const { formatFollowers } = require('../utils/format');
-const prisma = new PrismaClient();
+const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
 
 const getAllCreators = async (req, res) => {
   try {
     const creators = await prisma.creator.findMany({
       include: { invitedCampaigns: { include: { campaign: true } } },
     });
-
-    const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
 
     const formattedCreators = creators.map(creator => ({
       ...creator,
@@ -44,7 +42,6 @@ const getTopCreators = async (req, res) => {
       take: 10, // Limit to top 3
     });
 
-    const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
     const formattedCreators = topCreators.map(creator => ({
       ...creator,
       imageUrl: creator.imageKey ? `${s3BaseUrl}${creator.imageKey}` : null,

@@ -1,8 +1,8 @@
 const { formatFollowers } = require('../utils/format');
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const { prisma } = require("../prismaClient");
 const { format } = require("date-fns");
 const { v4: uuidv4 } = require('uuid');
+const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
 
 const getAllCampaigns = async (req, res) => {
   try {
@@ -10,8 +10,6 @@ const getAllCampaigns = async (req, res) => {
       include: { invitedCreators: { include: { creator: true } } },
       orderBy: { id: 'asc' },
     });
-
-    const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
 
     const formattedCampaigns = campaigns.map(campaign => ({
       ...campaign,
@@ -50,7 +48,6 @@ const getAllCampaigns = async (req, res) => {
 
 const getCampaignById = async (req, res) => {
   try {
-    const s3BaseUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
 
     const campaign = await prisma.campaign.findUnique({
       where: { id: req.params.id },
@@ -60,9 +57,6 @@ const getCampaignById = async (req, res) => {
     if (!campaign) {
       return res.status(404).json({ error: "Campaign not found" });
     }
-
-    console.log("Campaign Data:", campaign);
-    console.log("Campaign imageKey:", campaign.imageKey);
 
     // Ensure campaign.imageKey is properly formatted
     const formattedCampaign = {
@@ -91,9 +85,6 @@ const getCampaignById = async (req, res) => {
         },
       })),
     };
-
-    console.log("Formatted Campaign Data:", formattedCampaign);
-
     res.json({ campaign: formattedCampaign });
   } catch (error) {
     console.error("Error fetching campaign:", error);
