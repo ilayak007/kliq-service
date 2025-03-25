@@ -25,11 +25,22 @@ const getCustomersDashboard = async (req, res) => {
         },
       });
 
+      // Fetch customer details from the Customer table
+      const customerDetails = await prisma.customers.findUnique({
+        where: {
+          customerId: customer.customerId,
+        },
+        select: {
+          customerName: true,
+          profileImage: true,
+        },
+      });
+
       return {
         customerId: customer.customerId,
-        customerName: customer.customerName, // Hardcoded for now
-        title: "FLY",
-        profileImage: customer.profileImage,
+        customerName: customerDetails?.customerName || "Unknown",
+        title: "Go go Go",
+        profileImage: customerDetails?.profileImage || null,
         totalPoints: customer._sum.pointsEarned || 0,
         totalWon,
         totalLost,
@@ -37,7 +48,7 @@ const getCustomersDashboard = async (req, res) => {
     }));
 
     const sortedCustomers = customerData.sort((a, b) => b.totalPoints - a.totalPoints);
-    res.status(200).json({data:sortedCustomers});
+    res.status(200).json({ data: sortedCustomers });
 
   } catch (error) {
     console.error("Error fetching customer dashboard:", error);
