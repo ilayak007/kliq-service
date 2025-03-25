@@ -33,6 +33,7 @@ const getCustomersDashboard = async (req, res) => {
         select: {
           customerName: true,
           profileImage: true,
+          profileMessage: true,
         },
       });
 
@@ -41,6 +42,7 @@ const getCustomersDashboard = async (req, res) => {
         customerName: customerDetails?.customerName || "Unknown",
         title: "Go go Go",
         profileImage: customerDetails?.profileImage || null,
+        profileMessage: customerDetails?.profileMessage || "Your message goes here!",
         totalPoints: customer._sum.pointsEarned || 0,
         totalWon,
         totalLost,
