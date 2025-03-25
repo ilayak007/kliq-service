@@ -14,6 +14,14 @@ const cors = require("cors");
 const campaignRoutes = require("./routes/campaignRoutes");
 const creatorRoutes = require("./routes/creatorRoutes");
 const invitedCreatorRoutes = require("./routes/invitedCreatorRoutes");
+const matchRoutes = require('./routes/matchRoutes');
+const predictionsRoute = require('./routes/predictions');
+const customerSummaryRoute = require('./routes/customerSummaryRoutes');
+const customersDashboardRoute = require('./routes/customersDashboardRoutes');
+const loginRoute = require('./routes/loginRoutes');
+const changePasswordRoute = require('./routes/changePasswordRoute');
+const getDetailedSummarydRoute = require('./routes/detailedSummaryRoute');
+const updateMatchResultRoute = require('./routes/updateMatchResultRoute');
 
 const app = express();
 
@@ -27,6 +35,15 @@ app.get("/", (req, res) => res.send("Kliq Service is running!"));
 app.use("/campaigns", campaignRoutes);
 app.use("/creators", creatorRoutes);
 app.use("/invited-creators", invitedCreatorRoutes);
+app.use('/api/matches', matchRoutes);
+app.use('/api/predictions', predictionsRoute);
+app.use('/api/customer', customerSummaryRoute);
+app.use('/api/customers', customersDashboardRoute);
+app.use('/api/customer',loginRoute);
+app.use('/api/customer',changePasswordRoute);
+app.use('/api',getDetailedSummarydRoute);
+app.use('/api',updateMatchResultRoute);
+
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

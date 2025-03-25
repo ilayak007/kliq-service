@@ -42,3 +42,49 @@ model InvitedCreator {
 
   @@unique([campaignId, creatorId]) // Ensures a creator is invited only once per campaign
 }
+
+model Matches {
+  matchId            Int   @id
+  teamA              String
+  teamB              String
+  matchStartDateTime DateTime
+  result             String?   // Nullable result
+  matchLocation      String?
+  isActive           Boolean   @default(false)
+  isDrawNeeded       Boolean   @default(false)
+
+   // Reverse relation: A match can have multiple customer predictions
+  customerPredictions CustomerPrediction[] // One match can have many customer predictionscl
+}
+
+model CustomerPrediction {
+  predictionId      Int       @id @default(autoincrement())
+  matchId           Int
+  customerId        Int
+  customerName      String
+  customerSelected  String
+  result            Result?
+  pointsEarned      Int?
+  isPointsUpdated   Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  match             Matches     @relation(fields: [matchId], references: [matchId])
+  
+  @@index([matchId, customerId])
+}
+
+enum Result {
+  WON
+  LOST
+}
+
+model Customers {
+  customerId     Int      @id @default(autoincrement())
+  customerName   String
+  profileImage   String
+  email          String   @unique
+  password       String
+  lastLoggedIn   DateTime?
+}
+
