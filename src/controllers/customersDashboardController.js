@@ -27,8 +27,8 @@ const getCustomersDashboard = async (req, res) => {
 
       return {
         customerId: customer.customerId,
-        customerName: "Ilayaraja", // Hardcoded for now
-        title: "Flying wings",
+        customerName: customer.customerName, // Hardcoded for now
+        title: "FLY",
         profileImage: "https://kliq-demo-images.s3.eu-north-1.amazonaws.com/ilaya.jpg",
         totalPoints: customer._sum.pointsEarned || 0,
         totalWon,
