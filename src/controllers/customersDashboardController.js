@@ -29,7 +29,7 @@ const getCustomersDashboard = async (req, res) => {
         customerId: customer.customerId,
         customerName: customer.customerName, // Hardcoded for now
         title: "FLY",
-        profileImage: "https://kliq-demo-images.s3.eu-north-1.amazonaws.com/ilaya.jpg",
+        profileImage: customer.profileImage,
         totalPoints: customer._sum.pointsEarned || 0,
         totalWon,
         totalLost,
