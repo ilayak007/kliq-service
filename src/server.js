@@ -22,6 +22,7 @@ const loginRoute = require('./routes/loginRoutes');
 const changePasswordRoute = require('./routes/changePasswordRoute');
 const getDetailedSummarydRoute = require('./routes/detailedSummaryRoute');
 const updateMatchResultRoute = require('./routes/updateMatchResultRoute');
+const updateCustomerRoute  = require("./routes/updateCustomerRoute");
 
 const app = express();
 
@@ -43,6 +44,8 @@ app.use('/api/customer',loginRoute);
 app.use('/api/customer',changePasswordRoute);
 app.use('/api',getDetailedSummarydRoute);
 app.use('/api',updateMatchResultRoute);
+app.use('/api',updateCustomerRoute);
+
 
 
 const PORT = process.env.PORT || 3002;

@@ -83,6 +83,7 @@ model Customers {
   customerId     Int      @id @default(autoincrement())
   customerName   String
   profileImage   String
+  profileMessage String?
   email          String   @unique
   password       String
   lastLoggedIn   DateTime?
