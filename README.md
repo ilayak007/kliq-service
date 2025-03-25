@@ -1,6 +1,6 @@
 **Kliq Service** 🎯
 
-A Node.js backend service built with Express.js, Prisma, and PostgreSQL, designed for campaign and creator management. 
+A Node.js backend service built with Express.js, Prisma, and PostgreSQL, designed for campaign and creator management..
 The service is deployed on Vercel with database hosting on Neon
 
 🚀 **Features**
@@ -26,18 +26,17 @@ The service is deployed on Vercel with database hosting on Neon
 📂 **Project Structure**
 
 kliq-service/
-│── prisma/                                     # Prisma schema & migrations  
+│── prisma/ # Prisma schema & migrations  
 │── src/  
-│   ├── controllers/                            # API logic (Campaign & Creator)  
-│   ├── routes/                                 # Route definitions  
-│   ├── middleware/                             # Middleware (if any)  
-│   ├── utils/                                  # Helper functions  
-│   ├── server.js                               # Main entry point  
-│── .env                        # Environment variables  
-│── vercel.json                 # Vercel deployment config  
-│── package.json                # Dependencies & scripts  
-│── README.md                   # Documentation  
-
+│ ├── controllers/ # API logic (Campaign & Creator)  
+│ ├── routes/ # Route definitions  
+│ ├── middleware/ # Middleware (if any)  
+│ ├── utils/ # Helper functions  
+│ ├── server.js # Main entry point  
+│── .env # Environment variables  
+│── vercel.json # Vercel deployment config  
+│── package.json # Dependencies & scripts  
+│── README.md # Documentation
 
 🌍 **Live Demo**
 
