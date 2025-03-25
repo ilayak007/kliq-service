@@ -1,6 +1,6 @@
 **Kliq Service** 🎯
 
-A Node.js backend service built with Express.js, Prisma, and PostgreSQL, designed for campaign and creator management..
+A Node.js backend service built with Express.js, Prisma, and PostgreSQL, designed for campaign and creator management.
 The service is deployed on Vercel with database hosting on Neon
 
 🚀 **Features**
