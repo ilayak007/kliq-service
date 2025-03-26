@@ -49,10 +49,12 @@ const getDetailedSummary = async (req, res) => {
       teamA: prediction.match.teamA,
       teamB: prediction.match.teamB,
       customerSelected: prediction.customerSelected,
-      result: prediction.match.result || 'N/A', // In case result is null
-      pointsEarned: prediction.pointsEarned > 0 
-        ? `${prediction.pointsEarned} points earned` 
-        : `${prediction.pointsEarned} points lost`, // Points logic
+      result: prediction.match.result || '?', // In case result is null
+      pointsEarned: prediction.match.result === null
+      ? 'Result not updated'
+      : (prediction.pointsEarned > 0 
+          ? `${prediction.pointsEarned} points earned` 
+          : `${prediction.pointsEarned} points lost`)
     }));
 
     res.status(200).json(detailedSummary);
