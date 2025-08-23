@@ -35,9 +35,14 @@ const updateMatchResult = async (req, res) => {
 
     // Step 4: Update each customer's points and result
     for (const prediction of customerPredictions) {
-      const points = prediction.customerSelected === winningTeam ? WIN_POINTS : LOSS_POINTS;
-      const result = points === WIN_POINTS ? 'WON' : 'LOST';
+      const selected = prediction.customerSelected?.trim().toUpperCase();
+      const winner = winningTeam?.trim().toUpperCase();
 
+      const isWin = selected === winner;
+      const points = isWin ? WIN_POINTS : LOSS_POINTS;
+      const result = isWin ? 'WON' : 'LOST';
+
+      
       // Update the CustomerPrediction table with points and result
       await prisma.customerPrediction.update({
         where: { predictionId: prediction.predictionId },
