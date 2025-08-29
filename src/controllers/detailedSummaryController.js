@@ -16,8 +16,29 @@ const getDetailedSummary = async (req, res) => {
     return `${day}-${month}`;
   };
 
+  // Helper function to calculate longest correct streak
+  const calculateLongestStreak = (predictions) => {
+    let currentStreak = 0;
+    let longestStreak = 0;
+    
+    for (const prediction of predictions) {
+      // Only consider predictions where match result is not null
+      if (prediction.match.result !== null) {
+        // Check if prediction was correct (customerSelected matches match.result)
+        if (prediction.customerSelected === prediction.match.result) {
+          currentStreak++;
+          longestStreak = Math.max(longestStreak, currentStreak);
+        } else {
+          currentStreak = 0;
+        }
+      }
+    }
+    
+    return longestStreak;
+  };
+
   try {
-    // Fetch predictions for the customer with joined Matches data and sort by matchStartDateTime descending
+    // Fetch predictions for the customer with joined Matches data and sort by updatedAt ascending for streak calculation
     const summary = await prisma.customerPrediction.findMany({
       where: {
         customerId: parseInt(customerId),
@@ -33,9 +54,7 @@ const getDetailedSummary = async (req, res) => {
         },
       },
       orderBy: {
-        match: {
-          matchStartDateTime: 'desc', // Sort by matchStartDateTime descending
-        },
+        updatedAt: 'asc', // Sort by updatedAt ascending for chronological order
       },
     });
 
@@ -43,8 +62,16 @@ const getDetailedSummary = async (req, res) => {
       return res.status(404).json({ message: 'No predictions found for this customer.' });
     }
 
+    // Calculate longest correct streak
+    const longestStreak = calculateLongestStreak(summary);
+
+    // Sort by matchStartDateTime descending for display
+    const sortedSummary = summary.sort((a, b) => 
+      new Date(b.match.matchStartDateTime) - new Date(a.match.matchStartDateTime)
+    );
+
     // Map the response to pick 'match.result' and format other fields
-    const detailedSummary = summary.map((prediction) => ({
+    const detailedSummary = sortedSummary.map((prediction) => ({
       matchDate: formatDate(prediction.match.matchStartDateTime),
       teamA: prediction.match.teamA,
       teamB: prediction.match.teamB,
@@ -57,7 +84,10 @@ const getDetailedSummary = async (req, res) => {
           : `${prediction.pointsEarned} points lost`)
     }));
 
-    res.status(200).json(detailedSummary);
+    res.status(200).json({
+      detailedSummary,
+      longestCorrectStreak: longestStreak
+    });
   } catch (error) {
     console.error('Error fetching detailed summary:', error);
     res.status(500).json({ error: 'Internal Server Error' });
