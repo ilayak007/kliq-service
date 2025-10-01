@@ -1,7 +1,8 @@
 const express = require('express');
-const { getTodaysMatches } = require('../controllers/matchController');
+const { getTodaysMatches, getTournamentMatches } = require('../controllers/matchController');
 const router = express.Router();
 
 router.get('/todays-matches', getTodaysMatches);
+router.get('/tournament/:tournamentId', getTournamentMatches);
 
 module.exports = router;

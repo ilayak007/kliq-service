@@ -3,18 +3,37 @@ const prisma = new PrismaClient();
 
 const getCustomersDashboard = async (req, res) => {
   try {
+    const { tournamentId } = req.query;
+
+    // Build where clause for tournament filtering
+    const whereClause = {};
+    if (tournamentId) {
+      whereClause.match = {
+        tournamentId: tournamentId
+      };
+    }
+
     const customers = await prisma.customerPrediction.groupBy({
       by: ["customerId"],
+      where: whereClause,
       _sum: {
         pointsEarned: true,
       },
     });
 
     const customerData = await Promise.all(customers.map(async (customer) => {
+      // Build tournament filter for win/loss counts
+      const tournamentFilter = tournamentId ? {
+        match: {
+          tournamentId: tournamentId
+        }
+      } : {};
+
       const totalLost = await prisma.customerPrediction.count({
         where: {
           customerId: customer.customerId,
           result: "LOST",
+          ...tournamentFilter
         },
       });
 
@@ -22,6 +41,7 @@ const getCustomersDashboard = async (req, res) => {
         where: {
           customerId: customer.customerId,
           result: "WON",
+          ...tournamentFilter
         },
       });
 

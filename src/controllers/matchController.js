@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 const getTodaysMatches = async (req, res) => {
   try {
-    const { customerId } = req.query;
+    const { customerId, tournamentId } = req.query;
     const parsedCustomerId = parseInt(customerId, 10);
 
     if (isNaN(parsedCustomerId)) {
@@ -14,12 +14,33 @@ const getTodaysMatches = async (req, res) => {
     const currentIST = moment().tz('Asia/Kolkata');
     const todayISTDate = currentIST.format('YYYY-MM-DD');
 
+    // Build where clause for tournament filtering
+    const whereClause = { isActive: true };
+    if (tournamentId) {
+      whereClause.tournamentId = tournamentId;
+    }
+
     const matches = await prisma.matches.findMany({
-      where: { isActive: true },
+      where: whereClause,
+      include: {
+        tournament: {
+          select: {
+            tournamentName: true,
+            sport: true
+          }
+        }
+      }
     });
 
     const customerPredictions = await prisma.customerPrediction.findMany({
-      where: { customerId: parsedCustomerId },
+      where: { 
+        customerId: parsedCustomerId,
+        ...(tournamentId && {
+          match: {
+            tournamentId: tournamentId
+          }
+        })
+      },
       select: { matchId: true },
     });
 
@@ -66,4 +87,45 @@ const getTodaysMatches = async (req, res) => {
   }
 };
 
-module.exports = { getTodaysMatches };
+const getTournamentMatches = async (req, res) => {
+  try {
+    const { tournamentId } = req.params;
+
+    const matches = await prisma.matches.findMany({
+      where: { tournamentId },
+      include: {
+        tournament: {
+          select: {
+            tournamentName: true,
+            sport: true,
+            startDate: true,
+            endDate: true
+          }
+        },
+        customerPredictions: {
+          select: {
+            customerId: true,
+            customerSelected: true,
+            result: true,
+            pointsEarned: true
+          }
+        }
+      },
+      orderBy: { matchStartDateTime: 'asc' }
+    });
+
+    // Add prediction count for each match
+    const matchesWithCounts = matches.map(match => ({
+      ...match,
+      totalPredictions: match.customerPredictions.length,
+      customerPredictions: undefined // Remove detailed predictions from response
+    }));
+
+    res.status(200).json({ data: matchesWithCounts });
+  } catch (error) {
+    console.error('Error fetching tournament matches:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+module.exports = { getTodaysMatches, getTournamentMatches };

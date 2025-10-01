@@ -2,8 +2,8 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const getDetailedSummary = async (req, res) => {
-  const { customerId } = req.params;
-  console.log("Customer ID:", customerId);
+  const { customerId, tournamentId } = req.params;
+  console.log("Customer ID:", customerId, "Tournament ID:", tournamentId);
 
   if (isNaN(customerId)) {
     return res.status(400).json({ message: 'Invalid customerId' });
@@ -38,14 +38,29 @@ const getDetailedSummary = async (req, res) => {
   };
 
   try {
+    // Build where clause for tournament filtering
+    const whereClause = {
+      customerId: parseInt(customerId),
+    };
+    
+    if (tournamentId && tournamentId !== 'undefined') {
+      whereClause.match = {
+        tournamentId: tournamentId
+      };
+    }
+
     // Fetch predictions for the customer with joined Matches data and sort by updatedAt ascending for streak calculation
     const summary = await prisma.customerPrediction.findMany({
-      where: {
-        customerId: parseInt(customerId),
-      },
+      where: whereClause,
       include: {
         match: {
           select: {
+            tournamentId: true,
+            tournament: {
+              select: {
+                tournamentName: true
+              }
+            },
             matchStartDateTime: true,
             teamA: true,
             teamB: true,

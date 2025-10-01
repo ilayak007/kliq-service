@@ -3,20 +3,36 @@ const prisma = new PrismaClient();
 
 const getPointsSummary = async (req, res) => {
   try {
-    const { customerId } = req.query;
+    const { customerId, tournamentId } = req.query;
     const parsedCustomerId = parseInt(customerId, 10);
 
     if (isNaN(parsedCustomerId)) {
       return res.status(400).json({ message: 'Invalid customer ID' });
     }
 
+    // Build where clause for tournament filtering
+    const whereClause = { customerId: parsedCustomerId };
+    if (tournamentId) {
+      whereClause.match = {
+        tournamentId: tournamentId
+      };
+    }
+
     // Fetch all predictions for the customer
     const predictions = await prisma.customerPrediction.findMany({
-      where: { customerId: parsedCustomerId },
-      select: {
-        result: true, // Enum: WON, LOST, PENDING, etc.
-        pointsEarned: true,
-      },
+      where: whereClause,
+      include: {
+        match: {
+          select: {
+            tournamentId: true,
+            tournament: {
+              select: {
+                tournamentName: true
+              }
+            }
+          }
+        }
+      }
     });
 
     // Calculate the summary
@@ -31,9 +47,17 @@ const getPointsSummary = async (req, res) => {
       totalPointsEarned += prediction.pointsEarned || 0; // Fallback if null
     });
 
-    // Fetch total points earned by all customers
+    // Fetch total points earned by all customers for the same tournament
+    const allCustomersWhereClause = {};
+    if (tournamentId) {
+      allCustomersWhereClause.match = {
+        tournamentId: tournamentId
+      };
+    }
+
     const allCustomersPoints = await prisma.customerPrediction.groupBy({
       by: ['customerId'],
+      where: allCustomersWhereClause,
       _sum: {
         pointsEarned: true,
       },

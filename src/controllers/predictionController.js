@@ -13,10 +13,26 @@ const createPrediction = async (req, res) => {
 
     const match = await prisma.matches.findFirst({
       where: { matchId: matchId },
+      include: {
+        tournament: {
+          select: {
+            tournamentId: true,
+            tournamentName: true,
+            isActive: true
+          }
+        }
+      }
     });
 
     if (!match) {
       return res.status(404).json({ error: "Match not found" });
+    }
+
+    // Check if tournament is active
+    if (!match.tournament.isActive) {
+      return res.status(400).json({ 
+        error: "Predictions are not allowed for inactive tournaments" 
+      });
     }
 
     const matchIST = moment.utc(match.matchStartDateTime).tz('Asia/Kolkata');

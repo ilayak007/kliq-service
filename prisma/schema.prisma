@@ -8,27 +8,27 @@ datasource db {
 }
 
 model Campaign {
-  id               String   @id @default(uuid())
-  name             String
-  description      String
-  budget          Int
-  launchDate      DateTime
-  assignedBy      String
-  assignedChannels String[]
-  imageKey        String?
-  assignedImageKey String?
-  campaignCreatedDate DateTime @default(now())
-  invitedCreators InvitedCreator[]
+  id                  String           @id @default(uuid())
+  name                String
+  description         String
+  budget              Int
+  launchDate          DateTime
+  assignedBy          String
+  assignedChannels    String[]
+  imageKey            String?
+  assignedImageKey    String?
+  campaignCreatedDate DateTime         @default(now())
+  invitedCreators     InvitedCreator[]
 }
 
 model Creator {
-  id         String   @id @default(uuid())
-  name       String
-  city       String
-  country    String
-  followers  Int
-  platforms  String[]
-  imageKey   String?   // Stores S3 image reference
+  id               String           @id @default(uuid())
+  name             String
+  followers        Int
+  platforms        String[]
+  city             String
+  country          String
+  imageKey         String?
   invitedCampaigns InvitedCreator[]
 }
 
@@ -36,56 +36,72 @@ model InvitedCreator {
   id         String   @id @default(uuid())
   campaignId String
   creatorId  String
-
   campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   creator    Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
-  @@unique([campaignId, creatorId]) // Ensures a creator is invited only once per campaign
+  @@unique([campaignId, creatorId])
 }
 
-model Matches {
-  matchId            Int   @id
-  teamA              String
-  teamB              String
-  matchStartDateTime DateTime
-  result             String?   // Nullable result
-  matchLocation      String?
-  isActive           Boolean   @default(false)
-  isDrawNeeded       Boolean   @default(false)
+model Tournament {
+  tournamentId   String    @id @default(uuid())
+  tournamentName String
+  sport          String
+  startDate      DateTime
+  endDate        DateTime?
+  isActive       Boolean   @default(true)
+  description    String?
+  imageKey       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  matches        Matches[]
 
-   // Reverse relation: A match can have multiple customer predictions
-  customerPredictions CustomerPrediction[] // One match can have many customer predictionscl
+  @@map("tournaments")
 }
 
 model CustomerPrediction {
-  predictionId      Int       @id @default(autoincrement())
-  matchId           Int
-  customerId        Int
-  customerName      String
-  customerSelected  String
-  result            Result?
-  pointsEarned      Int?
-  isPointsUpdated   Boolean   @default(false)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  match             Matches     @relation(fields: [matchId], references: [matchId])
-  
+  predictionId     Int      @id @default(autoincrement())
+  matchId          Int
+  customerId       Int
+  customerName     String
+  customerSelected String
+  result           Result?
+  pointsEarned     Int?
+  isPointsUpdated  Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  match            Matches  @relation(fields: [matchId], references: [matchId])
+
   @@index([matchId, customerId])
+}
+
+model Customers {
+  customerId     Int       @id @default(autoincrement())
+  customerName   String
+  profileImage   String
+  email          String    @unique
+  password       String
+  lastLoggedIn   DateTime?
+  profileMessage String?
+}
+
+model Matches {
+  teamA               String
+  teamB               String
+  matchStartDateTime  DateTime
+  result              String?
+  matchLocation       String?
+  isActive            Boolean              @default(false)
+  isDrawNeeded        Boolean              @default(false)
+  matchId             Int                  @id
+  tournamentId        String
+  customerPredictions CustomerPrediction[]
+  tournament          Tournament           @relation(fields: [tournamentId], references: [tournamentId])
+
+  @@map("Matches")
+  @@index([tournamentId])
 }
 
 enum Result {
   WON
   LOST
 }
-
-model Customers {
-  customerId     Int      @id @default(autoincrement())
-  customerName   String
-  profileImage   String
-  profileMessage String?
-  email          String   @unique
-  password       String
-  lastLoggedIn   DateTime?
-}
-
