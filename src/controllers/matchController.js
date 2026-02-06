@@ -52,7 +52,7 @@ const getTodaysMatches = async (req, res) => {
       const diffInMinutes = matchIST.diff(currentIST, 'minutes');
 
       if (matchDate !== todayISTDate) return false;
-      if (diffInMinutes < 60) return false;
+      if (diffInMinutes < 30) return false;
       if (submittedMatchIds.includes(match.matchId)) return false;
 
       return true;
