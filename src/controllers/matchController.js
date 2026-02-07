@@ -4,85 +4,118 @@ const prisma = new PrismaClient();
 
 const getTodaysMatches = async (req, res) => {
   try {
-    const { customerId, tournamentId } = req.query;
+    const { customerId, tournamentId, cutoffTime } = req.query;
     const parsedCustomerId = parseInt(customerId, 10);
 
     if (isNaN(parsedCustomerId)) {
       return res.status(400).json({ message: 'Invalid customer ID' });
     }
 
+    // Current time in IST
     const currentIST = moment().tz('Asia/Kolkata');
     const todayISTDate = currentIST.format('YYYY-MM-DD');
+    const tomorrowISTDate = currentIST.clone().add(1, 'day').format('YYYY-MM-DD');
 
-    // Build where clause for tournament filtering
+    // Cutoff time (default 4 PM IST)
+    const cutoff = cutoffTime || '11:00';
+
+    const cutoffMoment = moment.tz(
+      `${todayISTDate} ${cutoff}`,
+      'YYYY-MM-DD HH:mm',
+      'Asia/Kolkata'
+    );
+
+    const includeTomorrow = currentIST.isSameOrAfter(cutoffMoment);
+
+    // Build where clause
     const whereClause = { isActive: true };
     if (tournamentId) {
       whereClause.tournamentId = tournamentId;
     }
 
+    // Fetch active matches
     const matches = await prisma.matches.findMany({
       where: whereClause,
       include: {
         tournament: {
           select: {
             tournamentName: true,
-            sport: true
-          }
-        }
-      }
+            sport: true,
+          },
+        },
+      },
     });
 
+    // Fetch customer predictions
     const customerPredictions = await prisma.customerPrediction.findMany({
-      where: { 
+      where: {
         customerId: parsedCustomerId,
         ...(tournamentId && {
-          match: {
-            tournamentId: tournamentId
-          }
-        })
+          match: { tournamentId },
+        }),
       },
       select: { matchId: true },
     });
 
-    const submittedMatchIds = customerPredictions.map((prediction) => prediction.matchId);
+    const submittedMatchIds = customerPredictions.map(p => p.matchId);
 
-    const filteredMatches = matches.filter((match) => {
+    // Filter matches
+    const filteredMatches = matches.filter(match => {
       const matchIST = moment.utc(match.matchStartDateTime).tz('Asia/Kolkata');
       const matchDate = matchIST.format('YYYY-MM-DD');
-      const diffInMinutes = matchIST.diff(currentIST, 'minutes');
 
-      if (matchDate !== todayISTDate) return false;
-      if (diffInMinutes < 30) return false;
+      // Must start at least 30 mins from now
+      if (matchIST.diff(currentIST, 'minutes') < 30) return false;
+
+      // Already predicted
       if (submittedMatchIds.includes(match.matchId)) return false;
 
-      return true;
+      // Today
+      if (matchDate === todayISTDate) return true;
+
+      // Tomorrow (after cutoff)
+      if (includeTomorrow && matchDate === tomorrowISTDate) return true;
+
+      return false;
     });
 
-    // Get matchIds of the filtered matches
-    const filteredMatchIds = filteredMatches.map((match) => match.matchId);
+    const filteredMatchIds = filteredMatches.map(m => m.matchId);
 
-    // Query total prediction count per matchId
+    // Get prediction counts
     const predictionCounts = await prisma.customerPrediction.groupBy({
       by: ['matchId'],
       where: { matchId: { in: filteredMatchIds } },
       _count: { matchId: true },
     });
 
-    // Map counts for quick lookup
     const countsMap = {};
-    predictionCounts.forEach((entry) => {
+    predictionCounts.forEach(entry => {
       countsMap[entry.matchId] = entry._count.matchId;
     });
 
-    // Add totalVotedCount to each match
-    const finalMatches = filteredMatches.map((match) => ({
+    // Add totalVoteCount
+    const finalMatches = filteredMatches.map(match => ({
       ...match,
       totalVoteCount: countsMap[match.matchId] || 0,
     }));
 
-    res.status(200).json({ data: finalMatches });
+    // ✅ SORT BY MATCH START TIME (ASCENDING)
+    finalMatches.sort((a, b) => {
+      return new Date(a.matchStartDateTime) - new Date(b.matchStartDateTime);
+    });
+
+    res.status(200).json({
+      data: finalMatches,
+      meta: {
+        today: todayISTDate,
+        tomorrow: tomorrowISTDate,
+        cutoffTime: cutoff,
+        includeTomorrow,
+        timezone: 'Asia/Kolkata',
+      },
+    });
   } catch (error) {
-    console.error('Error fetching today\'s matches:', error);
+    console.error("Error fetching today's matches:", error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
@@ -99,26 +132,25 @@ const getTournamentMatches = async (req, res) => {
             tournamentName: true,
             sport: true,
             startDate: true,
-            endDate: true
-          }
+            endDate: true,
+          },
         },
         customerPredictions: {
           select: {
             customerId: true,
             customerSelected: true,
             result: true,
-            pointsEarned: true
-          }
-        }
+            pointsEarned: true,
+          },
+        },
       },
-      orderBy: { matchStartDateTime: 'asc' }
+      orderBy: { matchStartDateTime: 'asc' },
     });
 
-    // Add prediction count for each match
     const matchesWithCounts = matches.map(match => ({
       ...match,
       totalPredictions: match.customerPredictions.length,
-      customerPredictions: undefined // Remove detailed predictions from response
+      customerPredictions: undefined,
     }));
 
     res.status(200).json({ data: matchesWithCounts });
