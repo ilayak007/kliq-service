@@ -3,49 +3,67 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const createPrediction = async (req, res) => {
-  const { matchId, customerId, customerName, customerSelected, result, pointsEarned, isPointsUpdated } = req.body;
+  const {
+    matchId,
+    customerId,
+    customerName,
+    customerSelected,
+    result,
+    pointsEarned,
+    isPointsUpdated,
+  } = req.body;
 
   try {
-
-    // START 
     const currentIST = moment().tz('Asia/Kolkata');
-    const todayISTDate = currentIST.format('YYYY-MM-DD');
 
     const match = await prisma.matches.findFirst({
-      where: { matchId: matchId },
+      where: { matchId },
       include: {
         tournament: {
           select: {
             tournamentId: true,
             tournamentName: true,
-            isActive: true
-          }
-        }
-      }
+            isActive: true,
+          },
+        },
+      },
     });
 
     if (!match) {
       return res.status(404).json({ error: "Match not found" });
     }
 
-    // Check if tournament is active
+    // ✅ Tournament must be active
     if (!match.tournament.isActive) {
-      return res.status(400).json({ 
-        error: "Predictions are not allowed for inactive tournaments" 
+      return res.status(400).json({
+        error: "Predictions are not allowed for inactive tournaments",
+      });
+    }
+
+    // ✅ Prevent duplicate prediction
+    const existingPrediction = await prisma.customerPrediction.findFirst({
+      where: {
+        matchId,
+        customerId,
+      },
+      select: { matchId: true },
+    });
+
+    if (existingPrediction) {
+      return res.status(400).json({
+        error: "You have already submitted a prediction for this match.",
       });
     }
 
     const matchIST = moment.utc(match.matchStartDateTime).tz('Asia/Kolkata');
-    const matchDate = matchIST.format('YYYY-MM-DD');
     const diffInMinutes = matchIST.diff(currentIST, 'minutes');
 
-        // if either condition fails → return 400
-        if (matchDate !== todayISTDate || diffInMinutes < 60) {
-          return res.status(400).json({
-            error: "Your prediction could not be submitted because the cutoff time has passed."
-          });
-        }
-    // FINISH
+    // ✅ ONLY RULE: must be at least 30 minutes before match start
+    if (diffInMinutes < 30) {
+      return res.status(400).json({
+        error: "Your prediction could not be submitted because the cutoff time has passed.",
+      });
+    }
 
     const prediction = await prisma.customerPrediction.create({
       data: {
